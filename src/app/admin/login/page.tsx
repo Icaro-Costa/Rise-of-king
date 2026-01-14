@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -31,7 +31,7 @@ export default function LoginPage() {
             } else {
                 router.push("/admin");
             }
-        } catch (err) {
+        } catch {
             setError("An error occurred");
         } finally {
             setIsLoading(false);
