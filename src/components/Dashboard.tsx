@@ -1,58 +1,87 @@
+"use client";
+
+import { useState } from "react";
+import { UploadArea } from "./UploadArea";
 import { RankingTable } from "./RankingTable";
-import { Castle, Users, TrendingUp } from "lucide-react";
+import { SummaryCards } from "./SummaryCards";
+import { FilterBar } from "./FilterBar";
+import { EvolutionChart } from "./EvolutionChart";
+
+// Mock Data
+const MOCK_DATA = [
+    { rank: 1, name: "Commander X", score: 12500, leaderCount: 45, memberCount: 120, change: "up" as const, trend: 12 },
+    { rank: 2, name: "Warlord Y", score: 11200, leaderCount: 38, memberCount: 110, change: "up" as const, trend: 5 },
+    { rank: 3, name: "Strategist Z", score: 10800, leaderCount: 42, memberCount: 95, change: "down" as const, trend: 2 },
+    { rank: 4, name: "Vanguard A", score: 9500, leaderCount: 25, memberCount: 150, change: "neutral" as const, trend: 0 },
+    { rank: 5, name: "Guardian B", score: 8900, leaderCount: 30, memberCount: 88, change: "up" as const, trend: 8 },
+];
+
+const MOCK_CHART_DATA = [
+    { date: 'Day 1', score: 4000 },
+    { date: 'Day 2', score: 3000 },
+    { date: 'Day 3', score: 5000 },
+    { date: 'Day 4', score: 4500 },
+    { date: 'Day 5', score: 6000 },
+    { date: 'Day 6', score: 7500 },
+    { date: 'Day 7', score: 8200 },
+];
 
 export function Dashboard() {
+    const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortColumn, setSortColumn] = useState("score");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+    // Filter and Sort Logic
+    const filteredData = MOCK_DATA.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ).sort((a, b) => {
+        // @ts-expect-error - dynamic sorting
+        const valA = a[sortColumn];
+        // @ts-expect-error - dynamic sorting
+        const valB = b[sortColumn];
+
+        if (sortDirection === "asc") return valA > valB ? 1 : -1;
+        return valA < valB ? 1 : -1;
+    });
+
+    const handleSort = (column: string) => {
+        if (sortColumn === column) {
+            setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("desc");
+        }
+    };
+
     return (
-        <div className="grid gap-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass-card p-6 rounded-2xl relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300">
-                    <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:text-indigo-300 transition-colors">
-                            <Castle className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-slate-400 text-sm font-medium uppercase tracking-wider">Total Forts</h3>
-                    </div>
-                    <p className="text-4xl font-bold text-white mt-2 tracking-tight">1,234</p>
-                    <p className="text-xs text-indigo-400 mt-2 font-medium">+12% from last week</p>
-                </div>
+        <div>
+            <SummaryCards
+                mvp={MOCK_DATA[0]}
+                totalForts={1234}
+                firepower={78}
+                period={period}
+            />
 
-                <div className="glass-card p-6 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all duration-300">
-                    <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all"></div>
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400 group-hover:text-purple-300 transition-colors">
-                            <Users className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-slate-400 text-sm font-medium uppercase tracking-wider">Active Players</h3>
-                    </div>
-                    <p className="text-4xl font-bold text-white mt-2 tracking-tight">85</p>
-                    <p className="text-xs text-purple-400 mt-2 font-medium">+3 new members</p>
-                </div>
+            <FilterBar
+                period={period}
+                onPeriodChange={setPeriod}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+            />
 
-                <div className="glass-card p-6 rounded-2xl relative overflow-hidden group hover:border-pink-500/30 transition-all duration-300">
-                    <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-pink-500/10 rounded-full blur-2xl group-hover:bg-pink-500/20 transition-all"></div>
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="p-3 rounded-xl bg-pink-500/10 text-pink-400 group-hover:text-pink-300 transition-colors">
-                            <TrendingUp className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-slate-400 text-sm font-medium uppercase tracking-wider">Average Level</h3>
-                    </div>
-                    <p className="text-4xl font-bold text-white mt-2 tracking-tight">5.2</p>
-                    <p className="text-xs text-pink-400 mt-2 font-medium">Top 5% of alliances</p>
-                </div>
-            </div>
+            <EvolutionChart data={MOCK_CHART_DATA} />
 
-            <div className="glass-card rounded-2xl overflow-hidden border-white/5">
-                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-                    <div>
-                        <h2 className="text-xl font-bold text-white">Live Ranking</h2>
-                        <p className="text-slate-400 text-sm mt-1">Real-time performance tracking</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">Live</span>
-                    </div>
-                </div>
-                <RankingTable />
+            <RankingTable
+                data={filteredData}
+                onSort={handleSort}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+            />
+
+            <div className="mt-12 pt-8 border-t border-white/5">
+                <h3 className="text-xl font-bold text-white mb-6">Data Management</h3>
+                <UploadArea />
             </div>
         </div>
     );
